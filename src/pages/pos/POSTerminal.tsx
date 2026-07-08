@@ -17,11 +17,16 @@ import {
   X,
   Package,
   TrendingDown,
+  UserPlus,
+  Users,
+  Gift,
+  Star,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useProducts } from '@/hooks/useProducts';
 import { useTransactions } from '@/hooks/useTransactions';
-import type { Product, CartItem, PaymentMethod, StockStatus } from '@/types';
+import { useMembers } from '@/hooks/useMembers';
+import type { Product, CartItem, PaymentMethod, StockStatus, Member } from '@/types';
 import { formatRupiah, getStockStatus, cn } from '@/utils/helpers';
 import { openReceiptWindow } from '@/utils/receiptPrinter';
 import toast from 'react-hot-toast';
@@ -62,12 +67,36 @@ export default function POSTerminal() {
     total: number;
     payment: PaymentMethod;
     change: number;
+    points_earned?: number;
     items: CartItem[];
   } | null>(null);
+
+  // Membership
+  const { searchMembers } = useMembers();
+  const [memberSearch, setMemberSearch] = useState('');
+  const [memberResults, setMemberResults] = useState<Member[]>([]);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [searchingMember, setSearchingMember] = useState(false);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
+
+  // Member search debounce
+  useEffect(() => {
+    if (!memberSearch.trim()) {
+      setMemberResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setSearchingMember(true);
+      const results = await searchMembers(memberSearch);
+      setMemberResults(results);
+      setSearchingMember(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [memberSearch, searchMembers]);
+
   // ── Derived Data ────────────────────────────────────────────────────────
   const activeProducts = useMemo(
     () => products.filter((p) => p.is_active),
@@ -103,6 +132,11 @@ export default function POSTerminal() {
     () => cart.reduce((sum, item) => sum + item.quantity, 0),
     [cart]
   );
+
+  const pointsPreview = useMemo(() => {
+    if (!selectedMember) return 0;
+    return Math.floor(cartTotal / 1000);
+  }, [cartTotal, selectedMember]);
 
   // ── Cart Actions ────────────────────────────────────────────────────────
   const addToCart = useCallback((product: Product) => {
@@ -186,7 +220,8 @@ export default function POSTerminal() {
         quantity: item.quantity,
         price_at_sale: item.price,
         subtotal: item.subtotal,
-      }))
+      })),
+      selectedMember?.id
     );
 
     setProcessing(false);
@@ -197,6 +232,7 @@ export default function POSTerminal() {
         total: cartTotal,
         payment: paymentMethod,
         change: result.change_given ?? 0,
+        points_earned: result.points_earned,
         items: [...cart],
       });
       setCart([]);
@@ -387,6 +423,77 @@ export default function POSTerminal() {
 
           {/* Cart footer */}
           <div className="p-4 border-t border-slate-100 space-y-3">
+            {/* ── Member Lookup ─────────────────────────────── */}
+            <div className="space-y-2">
+              {selectedMember ? (
+                <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/30 rounded-xl p-2.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Star size={16} className="text-brand-500 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-brand-700 dark:text-brand-300 truncate">
+                        {selectedMember.name}
+                      </p>
+                      <p className="text-xs text-brand-500 dark:text-brand-400">
+                        🎁 Dapat {pointsPreview} poin
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedMember(null);
+                      setMemberSearch('');
+                    }}
+                    className="text-xs text-brand-500 hover:text-danger-500 font-medium ml-1 flex-shrink-0"
+                  >
+                    Lepas
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <div className="relative">
+                    <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={memberSearch}
+                      onChange={(e) => setMemberSearch(e.target.value)}
+                      placeholder="Cari member (nama/HP)..."
+                      className="input pl-9 text-xs py-2"
+                    />
+                    {searchingMember && (
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        <div className="w-3.5 h-3.5 border-2 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  {memberResults.length > 0 && (
+                    <div className="mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-lg max-h-36 overflow-y-auto animate-scale">
+                      {memberResults.map((m) => (
+                        <button
+                          key={m.id}
+                          onClick={() => {
+                            setSelectedMember(m);
+                            setMemberSearch('');
+                            setMemberResults([]);
+                          }}
+                          className="w-full text-left px-3 py-2.5 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-between transition-colors"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">
+                              {m.name}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {m.phone || 'Tanpa HP'} • {m.total_points} poin
+                            </p>
+                          </div>
+                          <UserPlus size={14} className="text-brand-500 flex-shrink-0 ml-2" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <div className="flex items-center justify-between text-lg">
               <span className="font-semibold text-slate-600">Total</span>
               <span className="font-extrabold text-slate-800">{formatRupiah(cartTotal)}</span>
@@ -552,6 +659,14 @@ export default function POSTerminal() {
                   <div className="flex justify-between text-sm border-t border-slate-200 pt-2">
                     <span className="text-slate-500">Kembalian</span>
                     <span className="font-bold text-success-700">{formatRupiah(receipt.change)}</span>
+                  </div>
+                )}
+                {receipt.points_earned != null && receipt.points_earned > 0 && (
+                  <div className="flex justify-between text-sm border-t border-slate-200 pt-2">
+                    <span className="text-brand-600 flex items-center gap-1">
+                      <Gift size={14} /> Poin Member
+                    </span>
+                    <span className="font-bold text-brand-700">+{receipt.points_earned} pts</span>
                   </div>
                 )}
               </div>

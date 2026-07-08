@@ -53,13 +53,15 @@ export function useTransactions() {
     paymentMethod: PaymentMethod,
     cashReceived: number,
     items: POSItemInput[],
-  ): Promise<{ success: boolean; receipt_number?: string; change_given?: number; error?: string }> => {
+    memberId?: string,
+  ): Promise<{ success: boolean; receipt_number?: string; change_given?: number; points_earned?: number; error?: string }> => {
     const { data, error: err } = await supabase
       .rpc('process_pos_transaction', {
         p_cashier_id: cashierId,
         p_payment_method: paymentMethod,
         p_cash_received: cashReceived,
         p_items: items,
+        p_member_id: memberId || null,
       });
 
     if (err) {
@@ -74,6 +76,7 @@ export function useTransactions() {
       total_amount?: number;
       change_given?: number;
       item_count?: number;
+      points_earned?: number;
       error?: string;
     };
 
@@ -88,6 +91,7 @@ export function useTransactions() {
       success: true,
       receipt_number: result.receipt_number,
       change_given: result.change_given,
+      points_earned: result.points_earned,
     };
   }, [fetchTransactions]);
 

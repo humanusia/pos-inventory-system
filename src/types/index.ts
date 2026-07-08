@@ -9,6 +9,8 @@ export type StockMovementType = 'IN' | 'OUT' | 'ADJUSTMENT';
 
 export type PaymentMethod = 'CASH' | 'QRIS' | 'DEBIT';
 
+export type PointTransactionType = 'EARN' | 'REDEEM';
+
 export const USER_ROLES: UserRole[] = ['ADMIN', 'CASHIER', 'LOGISTICS'];
 
 export const STOCK_MOVEMENT_TYPES: StockMovementType[] = ['IN', 'OUT', 'ADJUSTMENT'];
@@ -86,9 +88,10 @@ export interface Transaction {
   cash_received: number | null;
   change_given: number | null;
   cashier_id: string;
+  member_id: string | null;
   created_at: string;
-  // Joined fields
   cashier_name?: string;
+  member_name?: string;
   items?: TransactionItem[];
 }
 
@@ -115,6 +118,42 @@ export interface CartItem {
   subtotal: number;
   current_stock: number;  // for validation before checkout
 }
+
+// ── Membership Types ─────────────────────────────────────────────────────────
+
+export interface Member {
+  id: string;
+  name: string;
+  phone: string | null;
+  total_points: number;
+  is_active: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  creator_name?: string;
+}
+
+export interface PointTransaction {
+  id: string;
+  member_id: string;
+  transaction_id: string | null;
+  type: PointTransactionType;
+  points: number;
+  description: string;
+  created_at: string;
+  member_name?: string;
+  receipt_number?: string;
+}
+
+export interface MemberFormData {
+  name: string;
+  phone: string;
+}
+
+export const POINT_TYPE_LABELS: Record<PointTransactionType, string> = {
+  EARN: 'Perolehan Poin',
+  REDEEM: 'Tukar Poin',
+};
 
 // ── Form Input Types ─────────────────────────────────────────────────────────
 

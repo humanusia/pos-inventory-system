@@ -11,6 +11,7 @@ import POSTerminal from '@/pages/pos/POSTerminal';
 import InventoryDashboard from '@/pages/inventory/InventoryDashboard';
 import AdminDashboard from '@/pages/admin/Dashboard';
 import UserManagement from '@/pages/admin/UserManagement';
+import MemberManagement from '@/pages/admin/MemberManagement';
 import NotFound from '@/pages/NotFound';
 import ProductForm from '@/pages/inventory/ProductForm';
 import StockMovement from '@/pages/inventory/StockMovement';
@@ -67,6 +68,7 @@ export default function App() {
       }>
         <Route index element={<AdminDashboard />} />
         <Route path="users" element={<UserManagement />} />
+        <Route path="members" element={<MemberManagement />} />
         <Route path="transactions" element={<TransactionHistory />} />
         <Route path="inventory" element={<InventoryDashboard />} />
         <Route path="inventory/add" element={<ProductForm />} />

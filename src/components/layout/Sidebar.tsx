@@ -9,6 +9,7 @@ import {
   Users,
   LogOut,
   Store,
+  Star,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import type { UserRole } from '@/types';
@@ -25,6 +26,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/inventory', icon: <Package size={20} />, label: 'Inventaris Gudang', roles: ['LOGISTICS', 'ADMIN'] },
   { to: '/admin', icon: <TrendingUp size={20} />, label: 'Dashboard Admin', roles: ['ADMIN'] },
   { to: '/admin/users', icon: <Users size={20} />, label: 'Manajemen Pengguna', roles: ['ADMIN'] },
+  { to: '/admin/members', icon: <Star size={20} />, label: 'Membership & Poin', roles: ['ADMIN'] },
 ];
 
 export function Sidebar() {
