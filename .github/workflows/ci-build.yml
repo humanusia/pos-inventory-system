@@ -1,0 +1,94 @@
+name: Build & Verify
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    name: TypeScript Check & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci 2>&1 | tee install.log
+
+      - name: TypeScript Type Check
+        run: |
+          npx tsc --noEmit 2>&1 | tee tsc.log
+          echo "TSC_EXIT=$?" >> $GITHUB_ENV
+
+      - name: Parse TypeScript Result
+        run: |
+          echo ""
+          echo "╔══════════════════════════════════════════╗"
+          echo "║        TYPESCRIPT CHECK RESULT           ║"
+          echo "╚══════════════════════════════════════════╝"
+
+          ERROR_COUNT=$(grep -c "error TS" tsc.log || true)
+
+          echo "🔴 Type Errors: $ERROR_COUNT"
+
+          if [ "$ERROR_COUNT" -gt 0 ]; then
+            echo ""
+            echo "❌ TYPE CHECK FAILED!"
+            echo "---"
+            grep "error TS" tsc.log || true
+            exit 1
+          else
+            echo ""
+            echo "✅ TYPE CHECK PASSED! Zero errors"
+          fi
+
+      - name: Vite Build
+        run: |
+          npm run build 2>&1 | tee vite.log
+          echo "VITE_EXIT=$?" >> $GITHUB_ENV
+
+      - name: Parse Vite Result
+        run: |
+          echo ""
+          echo "╔══════════════════════════════════════════╗"
+          echo "║           VITE BUILD RESULT              ║"
+          echo "╚══════════════════════════════════════════╝"
+
+          if grep -q "error" vite.log; then
+            echo ""
+            echo "❌ BUILD FAILED!"
+            grep -i "error" vite.log || true
+            exit 1
+          else
+            echo ""
+            echo "✅ BUILD SUCCESS!"
+            ls -la dist/ 2>/dev/null || echo "(dist output checked)"
+          fi
+
+      - name: Upload Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            tsc.log
+            vite.log
+            install.log
+          retention-days: 7
+
+      - name: Upload Dist
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
