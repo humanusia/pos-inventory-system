@@ -13,7 +13,7 @@ export function DashboardLayout() {
   if (!profile) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
       {/* Sidebar */}
       <Sidebar />
 

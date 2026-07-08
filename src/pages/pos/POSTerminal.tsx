@@ -13,6 +13,7 @@ import {
   Banknote,
   QrCode,
   Receipt,
+  Printer,
   X,
   Package,
   TrendingDown,
@@ -22,6 +23,7 @@ import { useProducts } from '@/hooks/useProducts';
 import { useTransactions } from '@/hooks/useTransactions';
 import type { Product, CartItem, PaymentMethod, StockStatus } from '@/types';
 import { formatRupiah, getStockStatus, cn } from '@/utils/helpers';
+import { openReceiptWindow } from '@/utils/receiptPrinter';
 import toast from 'react-hot-toast';
 import { PAYMENT_LABELS } from '@/types';
 
@@ -561,12 +563,41 @@ export default function POSTerminal() {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={() => setReceipt(null)}
-                className="btn-primary w-full"
-              >
-                Selesai
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    openReceiptWindow({
+                      receiptNumber: receipt.receipt_number,
+                      cashierName: profile?.name || 'Kasir',
+                      date: new Date().toISOString(),
+                      items: receipt.items.map((item) => ({
+                        name: item.product_name,
+                        qty: item.quantity,
+                        price: item.price,
+                        subtotal: item.subtotal,
+                      })),
+                      total: receipt.total,
+                      paymentMethod: PAYMENT_LABELS[receipt.payment],
+                      cashReceived:
+                        receipt.payment === 'CASH'
+                          ? receipt.total + receipt.change
+                          : undefined,
+                      changeGiven:
+                        receipt.payment === 'CASH' ? receipt.change : undefined,
+                    });
+                  }}
+                  className="btn-secondary flex-1"
+                >
+                  <Printer size={16} />
+                  Cetak
+                </button>
+                <button
+                  onClick={() => setReceipt(null)}
+                  className="btn-primary flex-1"
+                >
+                  Selesai
+                </button>
+              </div>
             </div>
           </div>
         </div>
