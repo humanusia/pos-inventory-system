@@ -40,11 +40,7 @@ const stockDot: Record<StockStatus, string> = {
   critical: 'bg-danger-400',
 };
 
-const stockLabel: Record<StockStatus, string> = {
-  safe: 'Tersedia',
-  low: 'Stok Rendah',
-  critical: 'Habis',
-};
+
 
 // ── Component ────────────────────────────────────────────────────────────────
 export default function POSTerminal() {
