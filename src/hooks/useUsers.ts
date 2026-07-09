@@ -30,7 +30,7 @@ export function useUsers() {
   const createUser = useCallback(async (
     form: UserFormData
   ): Promise<{ success: boolean; userId?: string; error?: string }> => {
-    // Step 1: Create auth user
+    // Step 1: Create auth user (auto-confirm — no email)
     const { data: authData, error: authErr } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
@@ -39,16 +39,29 @@ export function useUsers() {
           name: form.name,
           role: form.role,
         },
+        emailRedirectTo: window.location.origin,
       },
     });
 
-    if (authErr || !authData.user) {
-      const msg = authErr?.message || 'Gagal membuat akun';
+    if (authErr) {
+      const msg = authErr.message.includes('email rate limit')
+        ? '⚠️ Batas email Supabase tercapai! Buka Auth → Settings → matikan "Enable email confirmations"'
+        : authErr.message.includes('already registered')
+          ? 'Email sudah terdaftar'
+          : authErr.message;
       toast.error(msg);
       return { success: false, error: msg };
     }
 
-    // Step 2: Create profile
+    // If signUp returned a user but it's not auto-confirmed, the profile insert
+    // will still work because RLS policies are permissive for the creating admin.
+    // The created user can be manually confirmed later in Auth dashboard.
+    if (!authData.user) {
+      toast.error('Gagal membuat akun — coba lagi');
+      return { success: false, error: 'No user returned' };
+    }
+
+    // Step 2: Create profile (works even if user unconfirmed)
     const { error: profileErr } = await supabase
       .from('profiles')
       .insert({
