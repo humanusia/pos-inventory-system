@@ -22,7 +22,7 @@ import toast from 'react-hot-toast';
 export function Header() {
   const { profile } = useAuth();
   const { toggleTheme, isDark } = useTheme();
-  const { transactions, fetchTransactionItems } = useTransactions();
+  const { transactions, fetchTransactionItemsBatch } = useTransactions();
   const { products } = useProducts();
   const { movements } = useStockMovements();
   const location = useLocation();
@@ -71,11 +71,8 @@ export function Header() {
             toast.error('Tidak ada data transaksi untuk di-export');
             break;
           }
-          const itemsMap = new Map();
-          for (const tx of transactions.slice(0, 100)) {
-            const items = await fetchTransactionItems(tx.id);
-            itemsMap.set(tx.id, items);
-          }
+          const txs = transactions.slice(0, 100);
+          const itemsMap = await fetchTransactionItemsBatch(txs.map(tx => tx.id));
           exportTransactionsToCSV(transactions, itemsMap);
           toast.success('Laporan transaksi di-download');
           break;

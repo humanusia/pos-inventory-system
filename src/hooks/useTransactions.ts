@@ -117,6 +117,40 @@ export function useTransactions() {
     }));
   }, []);
 
+  // ── Batch Fetch Items (for export — avoids N+1 queries) ──────────────
+  const fetchTransactionItemsBatch = useCallback(async (
+    transactionIds: string[]
+  ): Promise<Map<string, TransactionItem[]>> => {
+    const map = new Map<string, TransactionItem[]>();
+    if (transactionIds.length === 0) return map;
+
+    const { data, error: err } = await supabase
+      .from('transaction_items')
+      .select(`
+        *,
+        product:products!transaction_items_product_id_fkey(name, sku)
+      `)
+      .in('transaction_id', transactionIds);
+
+    if (err) {
+      toast.error('Gagal memuat detail transaksi');
+      return map;
+    }
+
+    for (const item of data as unknown[]) {
+      const ti = {
+        ...(item as TransactionItem),
+        product_name: (item as { product?: { name: string } }).product?.name ?? 'Unknown',
+        product_sku: (item as { product?: { sku: string } }).product?.sku ?? '',
+      };
+      const list = map.get(ti.transaction_id) || [];
+      list.push(ti);
+      map.set(ti.transaction_id, list);
+    }
+
+    return map;
+  }, []);
+
   // ── Daily Summary ──────────────────────────────────────────────────────
   const fetchDailySummary = useCallback(async (): Promise<DailySummary | null> => {
     const today = new Date().toISOString().split('T')[0];
@@ -126,7 +160,7 @@ export function useTransactions() {
       .select(`
         total_amount,
         created_at,
-        items:transaction_items(subtotal, product:products(cost_price, selling_price))
+        items:transaction_items(subtotal, quantity, product:products(cost_price, selling_price))
       `)
       .gte('created_at', today)
       .order('created_at', { ascending: false });
@@ -138,6 +172,7 @@ export function useTransactions() {
       created_at: string;
       items: Array<{
         subtotal: number;
+        quantity: number;
         product: { cost_price: number; selling_price: number } | null;
       }>;
     }>;
@@ -149,9 +184,10 @@ export function useTransactions() {
     for (const tx of txList) {
       totalRevenue += tx.total_amount;
       for (const item of tx.items || []) {
-        itemsSold += 1;
+        const qty = item.quantity || 1;
+        itemsSold += qty;
         if (item.product) {
-          totalProfit += item.product.selling_price - item.product.cost_price;
+          totalProfit += qty * (item.product.selling_price - item.product.cost_price);
         }
       }
     }
@@ -191,6 +227,7 @@ export function useTransactions() {
     fetchTransactions,
     processSale,
     fetchTransactionItems,
+    fetchTransactionItemsBatch,
     fetchDailySummary,
   };
 }

@@ -63,9 +63,9 @@ export function useProducts() {
     const { error: err } = await supabase
       .from('products')
       .update({
-        ...(form.sku && { sku: form.sku.toUpperCase() }),
-        ...(form.name && { name: form.name }),
-        ...(form.category && { category: form.category }),
+        ...(form.sku !== undefined && { sku: form.sku.toUpperCase() }),
+        ...(form.name !== undefined && { name: form.name }),
+        ...(form.category !== undefined && { category: form.category }),
         ...(form.selling_price !== undefined && { selling_price: form.selling_price }),
         ...(form.cost_price !== undefined && { cost_price: form.cost_price }),
         ...(form.min_stock_alert !== undefined && { min_stock_alert: form.min_stock_alert }),
