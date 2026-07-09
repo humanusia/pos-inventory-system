@@ -1,7 +1,7 @@
 // ============================================================================
 // useTransactions — POS Transactions & Real-time Sales Feed
 // ============================================================================
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Transaction, TransactionItem, PaymentMethod, DailySummary } from '@/types';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
@@ -165,15 +165,11 @@ export function useTransactions() {
     };
   }, []);
 
-  const subscribedRef = useRef(false);
-
-  // Real-time subscription
+  // Real-time subscription — unique channel name per mount
   useEffect(() => {
-    if (subscribedRef.current) return;
-    subscribedRef.current = true;
-
+    const cid = `tx-${Math.random().toString(36).slice(2, 9)}`;
     const channel = supabase
-      .channel('transactions-changes')
+      .channel(cid)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'transactions' },
@@ -185,7 +181,6 @@ export function useTransactions() {
 
     return () => {
       supabase.removeChannel(channel);
-      subscribedRef.current = false;
     };
   }, []);
 
