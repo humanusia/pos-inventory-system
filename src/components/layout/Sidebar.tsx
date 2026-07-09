@@ -53,7 +53,14 @@ export function Sidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {filteredItems.map((item) => {
-          const isActive = location.pathname === item.to || location.pathname.startsWith(item.to + '/');
+          // Exact match, or starts-with but no other nav item is a deeper match
+          const isExact = location.pathname === item.to;
+          const isParent = location.pathname.startsWith(item.to + '/');
+          // Don't highlight parent if a child nav item matches more specifically
+          const hasChildMatch = filteredItems.some(
+            other => other.to !== item.to && other.to.startsWith(item.to + '/') && location.pathname.startsWith(other.to)
+          );
+          const isActive = isExact || (isParent && !hasChildMatch);
           return (
             <NavLink
               key={item.to}

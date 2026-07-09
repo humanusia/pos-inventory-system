@@ -1,7 +1,7 @@
 // ============================================================================
 // LoginPage — Email/Password + Quick PIN Switcher
 // ============================================================================
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Store, KeyRound, LogIn, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -23,6 +23,9 @@ export default function LoginPage() {
   const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
   const [activeUsers, setActiveUsers] = useState<Profile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const selectedUserRef = useRef<Profile | null>(null);
+  // Keep ref in sync with state
+  useEffect(() => { selectedUserRef.current = selectedUser; }, [selectedUser]);
 
   // Fetch active users for PIN pad
   const fetchActiveUsers = useCallback(async () => {
@@ -46,31 +49,36 @@ export default function LoginPage() {
     await login({ email: email.trim(), password });
   };
 
-  const handlePinSubmit = async () => {
-    if (!selectedUser || pin.length !== 4) return;
-    await loginWithPin({ user_id: selectedUser.id, pin_code: pin });
+  const handlePinSubmit = useCallback(async () => {
+    const user = selectedUserRef.current;
+    if (!user || pin.length !== 4) return;
+    await loginWithPin({ user_id: user.id, pin_code: pin });
     setPin('');
     setSelectedUser(null);
-  };
+  }, [pin, loginWithPin]);
 
-  const handlePinKey = (digit: string) => {
-    if (pin.length < 4) {
-      const newPin = pin + digit;
-      setPin(newPin);
+  const handlePinKey = useCallback((digit: string) => {
+    setPin(prev => {
+      if (prev.length >= 4) return prev;
+      const newPin = prev + digit;
       // Auto-submit when 4 digits entered
-      if (newPin.length === 4 && selectedUser) {
-        setTimeout(() => {
-          loginWithPin({ user_id: selectedUser.id, pin_code: newPin });
-          setPin('');
-          setSelectedUser(null);
-        }, 200);
+      if (newPin.length === 4) {
+        const user = selectedUserRef.current;
+        if (user) {
+          setTimeout(() => {
+            loginWithPin({ user_id: user.id, pin_code: newPin });
+            setPin('');
+            setSelectedUser(null);
+          }, 200);
+        }
       }
-    }
-  };
+      return newPin;
+    });
+  }, [loginWithPin]);
 
-  const handlePinBackspace = () => {
+  const handlePinBackspace = useCallback(() => {
     setPin((prev) => prev.slice(0, -1));
-  };
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-brand-50 via-white to-sky-50 flex items-center justify-center p-4">

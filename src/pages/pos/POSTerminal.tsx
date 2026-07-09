@@ -121,22 +121,6 @@ export default function POSTerminal() {
     [cartTotal, selectedMember]
   );
 
-  // ── Barcode handler ──────────────────────────────────────────────────
-  const handleBarcode = useCallback((code: string) => {
-    const found = activeProducts.find(p =>
-      p.sku.toUpperCase() === code.toUpperCase() ||
-      p.name.toLowerCase().includes(code.toLowerCase())
-    );
-    if (found) {
-      addToCart(found);
-      toast.success(found.name);
-      setBarcode('');
-    }
-    // If not found, keep the input — user can press Enter again after typing full name
-    // Focus stays on barcode input
-    barcodeRef.current?.focus();
-  }, [activeProducts]);
-
   // ── Cart actions ─────────────────────────────────────────────────────
   const addToCart = useCallback((product: Product) => {
     setCart(prev => {
@@ -180,6 +164,19 @@ export default function POSTerminal() {
       return { ...i, quantity: newQty, subtotal: newQty * i.price };
     }).filter(Boolean) as CartItem[]);
   }, []);
+
+  // ── Barcode handler ──────────────────────────────────────────────────
+  const handleBarcode = useCallback((code: string) => {
+    const found = activeProducts.find(p =>
+      p.sku.toUpperCase() === code.toUpperCase()
+    );
+    if (found) {
+      addToCart(found);
+      toast.success(found.name);
+      setBarcode('');
+    }
+    barcodeRef.current?.focus();
+  }, [activeProducts, addToCart]);
 
   // ── Payment ──────────────────────────────────────────────────────────
   const cashChange = useMemo(() => {
@@ -614,8 +611,8 @@ export default function POSTerminal() {
                 )}
               </div>
               <div className="text-left text-xs text-slate-400 dark:text-slate-500 space-y-1 max-h-32 overflow-y-auto">
-                {receipt.items.map((item, idx) => (
-                  <div key={idx} className="flex justify-between">
+                {receipt.items.map((item) => (
+                  <div key={item.product_id} className="flex justify-between">
                     <span>{item.product_name} x{item.quantity}</span>
                     <span>{formatRupiah(item.subtotal)}</span>
                   </div>

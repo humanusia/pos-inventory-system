@@ -66,30 +66,30 @@ export const STOCK_STATUS_CONFIG: Record<
 // ── Date / Time Formatters ──────────────────────────────────────────────────
 
 export function formatDateTime(isoString: string): string {
+  if (!isoString) return '-';
   const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '-';
   return date.toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+    day: '2-digit', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
   });
 }
 
 export function formatDate(isoString: string): string {
+  if (!isoString) return '-';
   const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '-';
   return date.toLocaleDateString('id-ID', {
-    day: '2-digit',
-    month: 'long',
-    year: 'numeric',
+    day: '2-digit', month: 'long', year: 'numeric',
   });
 }
 
 export function formatTime(isoString: string): string {
+  if (!isoString) return '-';
   const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '-';
   return date.toLocaleTimeString('id-ID', {
-    hour: '2-digit',
-    minute: '2-digit',
+    hour: '2-digit', minute: '2-digit',
   });
 }
 

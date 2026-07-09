@@ -80,7 +80,7 @@ export default function ProductForm() {
           });
       }
     }
-  }, [id, isEdit, products]);
+  }, [id, isEdit]);
 
   const updateField = <K extends keyof ProductFormData>(
     key: K,
