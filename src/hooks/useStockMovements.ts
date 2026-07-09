@@ -1,7 +1,7 @@
 // ============================================================================
 // useStockMovements — Audit Trail & Stock Movement Operations
 // ============================================================================
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type {
   StockMovement,
@@ -78,8 +78,13 @@ export function useStockMovements() {
     return true;
   }, [fetchMovements]);
 
+  const subscribedRef = useRef(false);
+
   // Real-time subscription
   useEffect(() => {
+    if (subscribedRef.current) return;
+    subscribedRef.current = true;
+
     const channel = supabase
       .channel('movements-changes')
       .on(
@@ -93,6 +98,7 @@ export function useStockMovements() {
 
     return () => {
       supabase.removeChannel(channel);
+      subscribedRef.current = false;
     };
   }, []);
 

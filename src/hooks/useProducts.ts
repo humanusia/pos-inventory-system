@@ -1,7 +1,7 @@
 // ============================================================================
 // useProducts — Product CRUD & Real-time Stock Tracking
 // ============================================================================
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import type { Product, ProductFormData } from '@/types';
 import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
@@ -11,6 +11,7 @@ export function useProducts() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const subscribedRef = useRef(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -100,8 +101,11 @@ export function useProducts() {
     return true;
   }, [fetchProducts]);
 
-  // Real-time subscription
+  // Real-time subscription (guarded against StrictMode double-fire)
   useEffect(() => {
+    if (subscribedRef.current) return;
+    subscribedRef.current = true;
+
     const channel = supabase
       .channel('products-changes')
       .on(
@@ -126,6 +130,7 @@ export function useProducts() {
 
     return () => {
       supabase.removeChannel(channel);
+      subscribedRef.current = false;
     };
   }, []);
 
