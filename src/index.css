@@ -82,6 +82,32 @@
   }
 }
 
+/* ── Dark mode global text fixes ────────────────────────────── */
+@layer components {
+  .dark h1, .dark h2, .dark h3, .dark h4,
+  .dark .font-bold, .dark .font-semibold, .dark .font-extrabold {
+    /* Let Tailwind utilities override where present */
+  }
+
+  .dark .text-slate-800 { @apply text-slate-100; }
+  .dark .text-slate-700 { @apply text-slate-200; }
+  .dark .text-slate-600 { @apply text-slate-300; }
+  .dark .text-slate-500 { @apply text-slate-400; }
+
+  .dark thead { @apply bg-slate-800/80; }
+  .dark .border-slate-100 { @apply border-slate-700; }
+  .dark .border-slate-200 { @apply border-slate-700; }
+  .dark .divide-slate-50 { @apply divide-slate-700; }
+  .dark .bg-slate-50 { @apply bg-slate-700/50; }
+  .dark .hover\:bg-slate-50\/50:hover { @apply bg-slate-700/50; }
+
+  /* Table hover */
+  .dark tbody tr:hover { @apply bg-slate-700/30; }
+
+  /* Payment/Receipt modals */
+  .dark .bg-black\/40 { @apply bg-black/60; }
+}
+
 /* ── Animations ────────────────────────────────────────────── */
 @layer utilities {
   .animate-in { animation: fadeSlideIn 0.3s ease-out; }
