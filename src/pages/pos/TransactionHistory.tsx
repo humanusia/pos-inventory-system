@@ -223,7 +223,7 @@ export default function TransactionHistory() {
                 <p className="text-sm font-semibold text-slate-700 mb-2">Item</p>
                 {loadingItems ? (
                   <div className="flex justify-center py-4">
-                    <div className="w-6 h-6 border-3 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : items.length === 0 ? (
                   <p className="text-xs text-slate-400">Tidak bisa memuat item</p>

@@ -322,7 +322,7 @@ export default function MemberManagement() {
               </h4>
               {loadingHistory ? (
                 <div className="flex justify-center py-8">
-                  <div className="w-6 h-6 border-3 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-6 h-6 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
                 </div>
               ) : pointHistory.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-8">Belum ada transaksi poin</p>

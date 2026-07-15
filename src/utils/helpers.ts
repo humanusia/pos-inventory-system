@@ -156,6 +156,6 @@ export const CHART_COLORS = {
 
 // ── Classname merge (simple) ────────────────────────────────────────────────
 
-export function cn(...classes: (string | boolean | undefined | null)[]): string {
+export function cn(...classes: (string | undefined | null | false)[]): string {
   return classes.filter(Boolean).join(' ');
 }

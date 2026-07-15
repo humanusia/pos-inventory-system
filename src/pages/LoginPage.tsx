@@ -186,7 +186,7 @@ export default function LoginPage() {
                   <p className="text-sm font-semibold text-slate-600">Pilih akun:</p>
                   {loadingUsers ? (
                     <div className="flex justify-center py-4">
-                      <div className="w-8 h-8 border-3 border-brand-500 border-t-transparent rounded-full animate-spin" />
+                      <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin" />
                     </div>
                   ) : activeUsers.length === 0 ? (
                     <p className="text-sm text-slate-400 text-center py-4">Tidak ada akun aktif</p>

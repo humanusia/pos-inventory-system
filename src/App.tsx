@@ -4,6 +4,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth, RouteGuard } from '@/context/AuthContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import type { UserRole } from '@/types';
 
 // Lazy-loaded pages
 import LoginPage from '@/pages/LoginPage';
@@ -88,7 +89,6 @@ export default function App() {
 }
 
 // ── Helper ──────────────────────────────────────────────────────────────────
-import type { UserRole } from '@/types';
 
 function getHomePath(role: UserRole): string {
   switch (role) {
